@@ -21,6 +21,9 @@ const char* host = "192.168.4.1";
 const char* streamId   = "....................";
 const char* privateKey = "....................";
 
+String lefturl = String("GET ") + "/leftpunch/" + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" +"Connection: close\r\n\r\n";
+String righturl = String("GET ") + "/rightpunch/" + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "Connection: close\r\n\r\n";
+
 void setup() {
   Serial.begin(115200);
   delay(10);
@@ -63,10 +66,10 @@ void loop() {
   Serial.print(", right: ");
   Serial.println(digitalRead(RIGHT_PIN));
   if (digitalRead(LEFT_PIN) == 1) {
-    url = "/leftpunch/";
+    url = lefturl;
     Serial.println("stiff left cut!");
   } else if (digitalRead(RIGHT_PIN) == 1) {
-    url = "/rightpunch/";
+    url = righturl;
     Serial.println("hard right hook!");
   } else {
     return;
@@ -89,9 +92,7 @@ void loop() {
   Serial.println(url);
 
   // This will send the request to the server
-  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "Connection: close\r\n\r\n");
+  client.print(url);
   unsigned long timeout = millis();
   while (client.available() == 0) {
     if (millis() - timeout > 5000) {
