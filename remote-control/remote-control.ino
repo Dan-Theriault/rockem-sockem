@@ -11,7 +11,7 @@
 // AUTHOR: Daniel Theriault
 // VERSION: 0
 
-#define COLOR "RED"
+#define COLOR "BLUE"
 #define LEFT_PIN D5
 #define RIGHT_PIN D4
 
@@ -29,7 +29,6 @@ int rightshot = 0;
 
 void setup() {
   Serial.begin(115200);
-  delay(10);
 
   // We start by connecting to a WiFi network
 
