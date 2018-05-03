@@ -12,9 +12,10 @@
 // https://www.arduino.cc/en/Tutorial/Sweep
 
 #define COLOR "BLUE" // Change this when programming devices, as appropriate
-#define LEFT_PIN D2
-#define RIGHT_PIN D1
-#define PUNCH_ANGLE 60
+#define LEFT_PIN D1
+#define RIGHT_PIN D2
+#define PUNCH_ANGLE 120
+
 
 /* Set these to your desired credentials. */
 const char *ssid = COLOR;
@@ -46,45 +47,35 @@ void setup() {
   lServo.attach(LEFT_PIN);
   lServo.write(0);
   rServo.attach(RIGHT_PIN);
-  rServo.write(0);
+  rServo.write(180);
 }
 
 void loop() {
   int packetSize = Udp.parsePacket();
   
   if (packetSize) {
+    
     // receive incoming UDP packets
     int len = Udp.read(recvbuf, 255);
     if (len > 0) {
       recvbuf[len] = 0;
     }
-    
-//    Serial.print("Received packet: ");
-//    Serial.print(recvbuf[0]);
-//    Serial.print(" (Size: ");
-//    Serial.print(packetSize);
-//    Serial.println(")");
 
+    // control the servos in response
     if (recvbuf[0] == 'R') {
       Serial.println("RIGHT PUNCH!");
-//      digitalWrite(RIGHT_PIN, HIGH);
-//      delay(2000);
-//      digitalWrite(RIGHT_PIN, LOW);
-      rServo.write(PUNCH_ANGLE);
-      delay(200);
-      rServo.write(0);
+      
+      rServo.write(180 - PUNCH_ANGLE);
+      delay(600);
+      rServo.write(180);
+      
     } else if (recvbuf[0] == 'L') {
       Serial.println("LEFT PUNCH!");
-//      digitalWrite(LEFT_PIN, HIGH);
-//      delay(2000);
-//      digitalWrite(LEFT_PIN, LOW);
+
       lServo.write(PUNCH_ANGLE);
-      delay(200);
+      delay(600);
       lServo.write(0);
     }
   }
- 
-  
-
 }
 
