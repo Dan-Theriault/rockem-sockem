@@ -5,6 +5,7 @@
 */
 
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 
 // Program for Rockem-sockem robot remote control
 // AUTHOR: Daniel Theriault
@@ -18,11 +19,13 @@ const char* ssid     =  COLOR;
 const char* password = "J7PYeKRFo3EG4U32JqkPSsgX";
 
 const char* host = "192.168.4.1";
-const char* streamId   = "....................";
-const char* privateKey = "....................";
+WiFiUDP Udp;
+unsigned int port = 3651;
+char recv[1];
 
-String lefturl = String("GET ") + "/leftpunch/" + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" +"Connection: close\r\n\r\n";
-String righturl = String("GET ") + "/rightpunch/" + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "Connection: close\r\n\r\n";
+// used for oneshot behavior
+int leftshot = 0;
+int rightshot = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -55,60 +58,33 @@ void setup() {
   digitalWrite(D1, HIGH);
   pinMode(LEFT_PIN, INPUT);
   pinMode(RIGHT_PIN, INPUT);
+
+  Udp.begin(port);
 }
 
 int value = 0;
 
 void loop() {
-  String url;
-  Serial.print("left: ");
-  Serial.print(digitalRead(LEFT_PIN));
-  Serial.print(", right: ");
-  Serial.println(digitalRead(RIGHT_PIN));
   if (digitalRead(LEFT_PIN) == 1) {
-    url = lefturl;
-    Serial.println("stiff left cut!");
-  } else if (digitalRead(RIGHT_PIN) == 1) {
-    url = righturl;
-    Serial.println("hard right hook!");
+    if (leftshot == 1) return;
+    Serial.println("LEFT!");
+    Udp.beginPacket(host, port);
+    Udp.write('L');
+    Udp.endPacket();
+    delay(400);
   } else {
-    return;
+    leftshot == 0;
   }
   
-  delay(5000);
-  ++value;
-
-  Serial.print("connecting to ");
-  Serial.println(host);
-
-  // Use WiFiClient class to create TCP connections
-  WiFiClient client;
-  const int httpPort = 80;
-  if (!client.connect(host, httpPort)) {
-    Serial.println("connection failed");
-    return;
+  if (digitalRead(RIGHT_PIN) == 1) {
+    if (rightshot == 1) return;
+    Serial.println("RIGHT!");
+    Udp.beginPacket(host, port);
+    Udp.write('R');
+    Udp.endPacket();
+    delay(400);
+  } else {
+    rightshot == 0;
   }
-  Serial.print("Requesting URL: ");
-  Serial.println(url);
-
-  // This will send the request to the server
-  client.print(url);
-  unsigned long timeout = millis();
-  while (client.available() == 0) {
-    if (millis() - timeout > 5000) {
-      Serial.println(">>> Client Timeout !");
-      client.stop();
-      return;
-    }
-  }
-
-  // Read all the lines of the reply from server and print them to Serial
-  while (client.available()) {
-    String line = client.readStringUntil('\r');
-    Serial.print(line);
-  }
-
-  Serial.println();
-  Serial.println("closing connection");
 }
 
